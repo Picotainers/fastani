@@ -1,12 +1,12 @@
 # fastani
 Source-built `fastANI` container.
 
-## how to use
-```bash
-docker run --rm -v "$(pwd):/data" picotainers/fastani:latest --help
-```
+## Quick Usage
 
-## example
 ```bash
-docker run --rm -v "$(pwd):/data" picotainers/fastani:latest --version
+# Pull the image
+docker pull docker.io/picotainers/fastani:latest
+
+# Run the tool
+docker run --rm docker.io/picotainers/fastani:latest fastani --help
 ```

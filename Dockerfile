@@ -27,8 +27,15 @@ RUN cmake -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release .. \
 RUN mkdir -p /tmp/runtime-libs \
     && (ldd /tmp/fastANI | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if ($i ~ /^\//) print $i}' | sort -u | xargs -r -I{} cp -v --parents "{}" /tmp/runtime-libs) || true
 
-FROM gcr.io/distroless/base-debian12
+FROM debian:bookworm-slim
 COPY --from=builder /tmp/fastANI /usr/local/bin/fastANI
 COPY --from=builder /tmp/runtime-libs/ /
+
+RUN ln -sf /usr/local/bin/fastANI /usr/local/bin/fastani \
+    && printf '%s\n' '#!/bin/sh' \
+    'if [ "${1:-}" = "fastani" ] || [ "${1:-}" = "fastANI" ]; then shift; fi' \
+    'exec /usr/local/bin/fastANI "$@"' > /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
+
 WORKDIR /data
-ENTRYPOINT ["/usr/local/bin/fastANI"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
