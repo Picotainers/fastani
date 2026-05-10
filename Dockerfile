@@ -24,12 +24,14 @@ RUN cmake -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release .. \
     && test -x fastANI \
     && cp fastANI /tmp/fastANI
 
-RUN mkdir -p /tmp/runtime-libs \
-    && (ldd /tmp/fastANI | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if ($i ~ /^\//) print $i}' | sort -u | xargs -r -I{} cp -v --parents "{}" /tmp/runtime-libs) || true
-
 FROM debian:bookworm-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+      ca-certificates libstdc++6 zlib1g libgomp1 libgsl27 libgslcblas0 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /tmp/fastANI /usr/local/bin/fastANI
-COPY --from=builder /tmp/runtime-libs/ /
 
 RUN ln -sf /usr/local/bin/fastANI /usr/local/bin/fastani \
     && printf '%s\n' '#!/bin/sh' \
